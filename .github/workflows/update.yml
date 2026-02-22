@@ -2,7 +2,7 @@ name: Update CDL Calendar
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Runs every 6 hours
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,21 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Checkout with write permission
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: true  # <-- This allows git push
 
-      # Step 2: Setup Python
+      # Setup Python
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # Step 3: Install dependencies
+      # Install dependencies
       - run: pip install -r requirements.txt
 
-      # Step 4: Run the Python script to generate cdl.ics
+      # Run script
       - run: python generate_calendar.py
 
-      # Step 5: Commit and push only if cdl.ics changed
+      # Commit and push only if changes
       - run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
