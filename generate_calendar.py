@@ -3,6 +3,7 @@ import os
 from ics import Calendar, Event
 from datetime import datetime, timedelta
 
+# Get API key from environment
 API_KEY = os.environ.get("CITO_API_KEY")
 
 if not API_KEY:
@@ -26,6 +27,7 @@ events_added = 0
 
 for i, match in enumerate(matches, start=1):
     try:
+        # Correct team names from API
         team1 = match.get("homeTeamName", "TBD")
         team2 = match.get("awayTeamName", "TBD")
         date_str = match.get("matchDate")
@@ -40,9 +42,13 @@ for i, match in enumerate(matches, start=1):
         event = Event()
         event.name = f"CDL Match: {team1} vs {team2}"
         event.begin = event_time
+        event.end = event_time + timedelta(hours=1)  # Explicit end time for 1 hour
 
-        # Set match duration to 1 hour
-        event.duration = timedelta(hours=1)
+        # Optional: add stage, round, stream URL to description
+        stage = match.get("stage") or "TBD"
+        round_info = match.get("round") or "TBD"
+        stream = match.get("streamUrl") or "N/A"
+        event.description = f"Stage: {stage}\nRound: {round_info}\nStream: {stream}"
 
         calendar.events.add(event)
         events_added += 1
@@ -51,7 +57,7 @@ for i, match in enumerate(matches, start=1):
     except Exception as e:
         print(f"Skipping Match #{i} due to error: {e}")
 
-# Write the ICS file
+# Write ICS file
 with open("cdl.ics", "w") as f:
     f.writelines(calendar)
 
