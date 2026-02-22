@@ -1,7 +1,7 @@
 import requests
 import os
 from ics import Calendar, Event
-from datetime import datetime
+from datetime import datetime, timedelta
 
 API_KEY = os.environ.get("CITO_API_KEY")
 
@@ -28,18 +28,21 @@ for i, match in enumerate(matches, start=1):
     try:
         team1 = match.get("homeTeamName", "TBD")
         team2 = match.get("awayTeamName", "TBD")
-        date_str = match.get("matchDate")  # use the correct field
+        date_str = match.get("matchDate")
 
         if not date_str:
             print(f"Match #{i} skipped: no matchDate field")
             continue
 
-        # Convert ISO format to datetime
+        # Convert ISO string to datetime
         event_time = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
 
         event = Event()
         event.name = f"CDL Match: {team1} vs {team2}"
         event.begin = event_time
+
+        # Set match duration to 1 hour
+        event.duration = timedelta(hours=1)
 
         calendar.events.add(event)
         events_added += 1
@@ -48,6 +51,7 @@ for i, match in enumerate(matches, start=1):
     except Exception as e:
         print(f"Skipping Match #{i} due to error: {e}")
 
+# Write the ICS file
 with open("cdl.ics", "w") as f:
     f.writelines(calendar)
 
