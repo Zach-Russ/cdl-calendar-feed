@@ -1,72 +1,45 @@
-import requests
-import os
-from ics import Calendar, Event
-from datetime import datetime
+name: Update CDL Calendar
 
-API_KEY = os.environ.get("CITO_API_KEY")
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
-if not API_KEY:
-    print("ERROR: CITO_API_KEY environment variable is not set.")
-    exit(1)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
-URL = "https://api.citoapi.com/v1/cod/cdl/schedule"
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-headers = {
-    "x-api-key": API_KEY
-}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-print("Requesting CDL schedule from Cito API...")
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-try:
-    response = requests.get(URL, headers=headers, timeout=15)
-    print("Status Code:", response.status_code)
-    response.raise_for_status()
-except Exception as e:
-    print("ERROR: Failed to fetch schedule:", e)
-    exit(1)
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-try:
-    data = response.json()
-except Exception as e:
-    print("ERROR: Could not parse JSON:", e)
-    exit(1)
+      - name: Generate calendar
+        env:
+          CITO_API_KEY: ${{ secrets.CITO_API_KEY }}
+        run: python generate_calendar.py
 
-if "data" not in data:
-    print("ERROR: Unexpected API response format.")
-    print(data)
-    exit(1)
+      - name: Prepare Pages folder
+        run: |
+          mkdir public
+          mv cdl.ics public/
 
-matches = data["data"]
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
 
-print(f"Total matches returned by API: {len(matches)}")
-
-calendar = Calendar()
-events_added = 0
-
-for match in matches:
-    try:
-        team1 = match.get("team1", {}).get("name", "TBD")
-        team2 = match.get("team2", {}).get("name", "TBD")
-        date_str = match.get("date")
-
-        if not date_str:
-            continue
-
-        # Convert ISO string to datetime
-        event_time = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-
-        event = Event()
-        event.name = f"CDL Match: {team1} vs {team2}"
-        event.begin = event_time
-
-        calendar.events.add(event)
-        events_added += 1
-
-    except Exception as e:
-        print("Skipping match due to error:", e)
-        continue
-
-with open("cdl.ics", "w") as f:
-    f.writelines(calendar)
-
-print(f"ICS file generated with {events_added} events.")
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
