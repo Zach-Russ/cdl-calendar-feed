@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout repository
       - uses: actions/checkout@v3
 
       # Step 2: Setup Python
@@ -21,10 +21,10 @@ jobs:
       # Step 3: Install dependencies
       - run: pip install -r requirements.txt
 
-      # Step 4: Run the Python script to generate cdl.ics
+      # Step 4: Run Python script to generate cdl.ics
       - run: python generate_calendar.py
 
-      # Step 5: Deploy to GitHub Pages
+      # Step 5: Deploy cdl.ics to GitHub Pages (gh-pages branch)
       - name: Deploy cdl.ics to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -32,4 +32,3 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./      # root directory containing cdl.ics
           allow_empty_commit: true
-          force_orphan: true   # Creates gh-pages branch if it doesn't exist
