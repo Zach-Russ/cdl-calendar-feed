@@ -29,11 +29,9 @@ for match in matches:
         else:
             teams = teams_tag.text.strip()
         if not date_tag:
-            # Skip if date missing
             continue
         date_str = date_tag.text.strip()
 
-        # Attempt parsing; try multiple formats
         parsed = False
         for fmt in ("%B %d, %Y %I:%M %p", "%b %d, %Y %I:%M %p"):
             try:
