@@ -14,10 +14,9 @@ try:
     soup = BeautifulSoup(response.text, "html.parser")
 except Exception as e:
     print(f"Could not fetch CDL schedule: {e}")
-    # create empty calendar so workflow still succeeds
     with open("cdl.ics", "w") as f:
         f.writelines(calendar)
-    exit(0)  # exit gracefully
+    exit(0)
 
 matches = soup.find_all("div", class_="match-card")
 
@@ -25,17 +24,25 @@ for match in matches:
     try:
         teams_tag = match.find("div", class_="teams")
         date_tag = match.find("div", class_="date")
-        if not teams_tag or not date_tag:
+        if not teams_tag:
+            teams = "TBD vs TBD"
+        else:
+            teams = teams_tag.text.strip()
+        if not date_tag:
+            # Skip if date missing
             continue
-
-        teams = teams_tag.text.strip()
         date_str = date_tag.text.strip()
 
-        # Try parsing date safely
-        try:
-            event_time = datetime.strptime(date_str, "%B %d, %Y %I:%M %p")
-        except Exception:
-            # fallback: just skip this event
+        # Attempt parsing; try multiple formats
+        parsed = False
+        for fmt in ("%B %d, %Y %I:%M %p", "%b %d, %Y %I:%M %p"):
+            try:
+                event_time = datetime.strptime(date_str, fmt)
+                parsed = True
+                break
+            except ValueError:
+                continue
+        if not parsed:
             continue
 
         event = Event()
@@ -47,8 +54,7 @@ for match in matches:
         print(f"Skipping match due to error: {e}")
         continue
 
-# Always write calendar file
 with open("cdl.ics", "w") as f:
     f.writelines(calendar)
 
-print("cdl.ics generated successfully.")
+print("cdl.ics generated successfully with", len(calendar.events), "events.")
