@@ -2,7 +2,7 @@ name: Update CDL Calendar
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # every 6 hours
+    - cron: '0 */6 * * *'  # Runs every 6 hours
   workflow_dispatch:
 
 jobs:
@@ -10,25 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
+      # Step 1: Checkout the repository
       - uses: actions/checkout@v3
 
-      # Setup Python
+      # Step 2: Setup Python
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # Install dependencies
+      # Step 3: Install dependencies
       - run: pip install -r requirements.txt
 
-      # Generate the calendar
+      # Step 4: Run the Python script to generate cdl.ics
       - run: python generate_calendar.py
 
-      # Deploy to gh-pages using GitHub Pages action
+      # Step 5: Deploy to GitHub Pages
       - name: Deploy cdl.ics to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./  # root contains cdl.ics
+          publish_dir: ./      # root directory containing cdl.ics
           allow_empty_commit: true
+          force_orphan: true   # Creates gh-pages branch if it doesn't exist
