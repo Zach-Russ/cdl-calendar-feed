@@ -24,14 +24,14 @@ for match in matches:
     try:
         teams_tag = match.find("div", class_="teams")
         date_tag = match.find("div", class_="date")
-        if not teams_tag:
-            teams = "TBD vs TBD"
-        else:
-            teams = teams_tag.text.strip()
+
+        teams = teams_tag.text.strip() if teams_tag else "TBD vs TBD"
         if not date_tag:
-            continue
+            continue  # skip if no date
+
         date_str = date_tag.text.strip()
 
+        # Try multiple date formats
         parsed = False
         for fmt in ("%B %d, %Y %I:%M %p", "%b %d, %Y %I:%M %p"):
             try:
