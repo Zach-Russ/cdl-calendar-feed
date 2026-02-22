@@ -14,6 +14,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -29,14 +32,10 @@ jobs:
       - name: Generate calendar
         run: python generate_calendar.py
 
-      # Create a publish folder and move cdl.ics into it
       - name: Prepare Pages folder
         run: |
           mkdir public
           mv cdl.ics public/
-
-      - name: Debug - List files
-        run: ls -la public
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -44,4 +43,5 @@ jobs:
           path: ./public
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
