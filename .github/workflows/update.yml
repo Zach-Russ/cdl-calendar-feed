@@ -2,7 +2,7 @@ name: Update CDL Calendar
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */6 * * *'  # every 6 hours
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup Python
@@ -26,17 +26,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Set CITO_API_KEY
+        env:
+          CITO_API_KEY: ${{ secrets.CITO_API_KEY }}
+        run: echo "CITO_API_KEY set"
+
       - name: Generate calendar
+        env:
+          CITO_API_KEY: ${{ secrets.CITO_API_KEY }}
         run: python generate_calendar.py
 
-      # ✅ Create folder and move ICS inside
       - name: Prepare Pages folder
         run: |
           mkdir public
           mv cdl.ics public/
-
-      - name: Debug - list files
-        run: ls -la public
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
